@@ -41,35 +41,21 @@ class Record(object):
     def _get_text(self, namespace, tag):
         """Extracts text from an xml field"""
         try:
-            return (
-                self.xml.find(namespace + tag)
-                .text.strip()
-                .lower()
-                .replace("\n", " ")
-            )
+            return self.xml.find(namespace + tag).text.strip().lower().replace("\n", " ")
         except:
             return ""
 
     def _get_authors(self):
         authors_xml = self.xml.findall(ARXIV + "authors/" + ARXIV + "author")
-        last_names = [
-            author.find(ARXIV + "keyname").text.lower()
-            for author in authors_xml
-        ]
-        first_names = [
-            author.find(ARXIV + "forenames").text.lower()
-            for author in authors_xml
-        ]
+        last_names = [author.find(ARXIV + "keyname").text.lower() for author in authors_xml]
+        first_names = [author.find(ARXIV + "forenames").text.lower() for author in authors_xml]
         full_names = [a + " " + b for a, b in zip(first_names, last_names)]
         return full_names
 
     def _get_affiliation(self):
         authors = self.xml.findall(ARXIV + "authors/" + ARXIV + "author")
         try:
-            affiliation = [
-                author.find(ARXIV + "affiliation").text.lower()
-                for author in authors
-            ]
+            affiliation = [author.find(ARXIV + "affiliation").text.lower() for author in authors]
             return affiliation
         except:
             return []
@@ -127,15 +113,7 @@ class Scraper(object):
     ```
     """
 
-    def __init__(
-        self,
-        category,
-        date_from=None,
-        date_until=None,
-        t=30,
-        timeout=300,
-        filters={},
-    ):
+    def __init__(self, category, date_from=None, date_until=None, t=30, timeout=300, filters={}):
         self.cat = str(category)
         self.t = t
         self.timeout = timeout
@@ -149,12 +127,7 @@ class Scraper(object):
         else:
             self.u = date_until
         self.url = (
-            BASE
-            + "from="
-            + self.f
-            + "&until="
-            + self.u
-            + "&metadataPrefix=arXiv&set=%s" % self.cat
+            BASE + "from=" + self.f + "&until=" + self.u + "&metadataPrefix=arXiv&set=%s" % self.cat
         )
         self.filters = filters
         if not self.filters:
@@ -179,9 +152,7 @@ class Scraper(object):
             except HTTPError as e:
                 if e.code == 503:
                     to = int(e.hdrs.get("retry-after", 30))
-                    print(
-                        "Got 503. Retrying after {0:d} seconds.".format(self.t)
-                    )
+                    print("Got 503. Retrying after {0:d} seconds.".format(self.t))
                     time.sleep(self.t)
                     continue
                 else:
@@ -206,9 +177,7 @@ class Scraper(object):
                         ds.append(record)
 
             try:
-                token = root.find(OAI + "ListRecords").find(
-                    OAI + "resumptionToken"
-                )
+                token = root.find(OAI + "ListRecords").find(OAI + "resumptionToken")
             except:
                 return 1
             if token is None or token.text is None:
