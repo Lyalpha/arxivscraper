@@ -64,7 +64,7 @@ To have more control over the output, you could supply a dictionary to filter ou
 
 ```python
 import arxivscraper.arxivscraper as ax
-scraper = ax.Scraper(category='stat',date_from='2017-08-01',date_until='2017-08-10',t=10, filters={'categories':['stat.ml'],'abstract':['learning']})
+scraper = ax.Scraper(category='stat',date_from='2017-08-01',date_until='2017-08-10',wait=10, filters={'categories':['stat.ml'],'abstract':['learning']})
 output = scraper.scrape()
 ```
 

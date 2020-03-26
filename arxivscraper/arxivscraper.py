@@ -94,8 +94,8 @@ class Scraper(object):
     date_until: str
         final date in format 'YYYY-MM-DD'. Updated eprints are included even if
         they were created outside of the given date range. Default: today.
-    t: int
-        Waiting time between subsequent calls to API, triggred by Error 503.
+    wait: int
+        Waiting time between subsequent calls to API, triggered by Error 503.
     timeout: int
         Timeout in seconds after which the scraping stops. Default: 300s
     filter: dictionary
@@ -113,9 +113,11 @@ class Scraper(object):
     ```
     """
 
-    def __init__(self, category, date_from=None, date_until=None, t=30, timeout=300, filters=None):
+    def __init__(
+        self, category, date_from=None, date_until=None, wait=30, timeout=300, filters=None
+    ):
         self.cat = str(category)
-        self.t = t
+        self.t = wait
         self.timeout = timeout
         datetoday = datetime.date.today()
         if date_from is None:
