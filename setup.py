@@ -37,8 +37,6 @@ setup(
     keywords=["arxiv", "scraper", "api", "citation"],
     license="MIT",
     classifiers=[
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
         "Development Status :: 5 - Production/Stable",
