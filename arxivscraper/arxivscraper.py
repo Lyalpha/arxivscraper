@@ -136,6 +136,7 @@ class Scraper(object):
         progress_every=90,
         timeout=None,
         filters=None,
+        debug=False,
     ):
         self.cat = str(category)
         self.wait = wait
@@ -161,6 +162,8 @@ class Scraper(object):
         else:
             self.append_all = False
             self.keys = filters.keys()
+        if debug:
+            logger.setLevel(logging.DEBUG)
 
     def scrape(self):
         start = time.time()
