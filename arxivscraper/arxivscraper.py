@@ -204,14 +204,15 @@ class Scraper(object):
                     if save_record:
                         records.append(record)
 
-            try:
-                token = root.find(OAI + "ListRecords").find(OAI + "resumptionToken")
-            except:
-                return 1
-            if token is None or token.text is None:
+            list_records = root.find(OAI + "ListRecords")
+            if list_records is None:
+                logger.info("ListRecords empty")
                 break
-            else:
-                url = BASE + "resumptionToken=%s" % token.text
+            token = list_records.find(OAI + "resumptionToken")
+            if token.text is None:
+                logger.info("resumptionToken text empty")
+                break
+            url = BASE + "resumptionToken=%s" % token.text
 
             loop_duration = time.time() - loop_start
             lastlog += loop_duration
