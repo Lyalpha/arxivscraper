@@ -3,6 +3,7 @@ A python program to retreive recrods from ArXiv.org in given
 categories and specific date range.
 
 Author: Mahdi Sadjadi (sadjadi.seyedmahdi[AT]gmail[DOT]com).
+Updated by: Joe Lyman (https://github.com/Lyalpha/)
 """
 from xml.etree import ElementTree
 import datetime
