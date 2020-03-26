@@ -6,16 +6,15 @@ Author: Mahdi Sadjadi (sadjadi.seyedmahdi[AT]gmail[DOT]com).
 Updated by: Joe Lyman (https://github.com/Lyalpha/)
 """
 from xml.etree import ElementTree
-import datetime
 import logging
 import time
 
 from urllib.request import urlopen
 from urllib.error import HTTPError
 
-OAI = "{http://www.openarchives.org/OAI/2.0/}"
+OAI2 = "{http://www.openarchives.org/OAI/2.0/}"
 ARXIV = "{http://arxiv.org/OAI/arXiv/}"
-BASE = "http://export.arxiv.org/oai2?verb=ListRecords&"
+ARXIVOAI2_URLBASE = "http://export.arxiv.org/oai2?"
 
 LOGGING_FORMAT = "%(asctime)s  %(levelname)-10s %(processName)s - %(message)s"
 logging.basicConfig(level=logging.INFO, format=LOGGING_FORMAT)
@@ -101,12 +100,15 @@ class Scraper(object):
         The category of scraped records
     data_from: str
         starting date in format 'YYYY-MM-DD'. Updated eprints are included even if
-        they were created outside of the given date range. Default: first day of current month.
+        they were created outside of the given date range. Default: None (= earliest
+        date available in arxiv)
     date_until: str
         final date in format 'YYYY-MM-DD'. Updated eprints are included even if
-        they were created outside of the given date range. Default: today.
+        they were created outside of the given date range. Default: None (= latest
+        date available in arxiv)
     wait: int
-        Waiting time in seconds between subsequent calls to API, triggered by Error 503. Default: 30
+        Fall-back waiting time in seconds between subsequent calls to API, triggered
+        by Error 503. Default: 30
     progress_every: int
         Send an INFO level log entry about progress after this many seconds during querying.
         Default: 90
@@ -120,9 +122,9 @@ class Scraper(object):
     Returning all eprints from
 
     ```
-        import arxivscraper.arxivscraper as ax
-        scraper = ax.Scraper(category='stat',date_from='2017-12-23',date_until='2017-12-25',t=10,
-                 filters={'affiliation':['facebook'],'abstract':['learning']})
+        from arxivscraper import Scraper
+        scraper = Scraper(category='stat', date_from='2017-12-23', date_until='2017-12-25',
+            wait=10, filters={'affiliation':['facebook'], 'abstract':['learning']})
         output = scraper.scrape()
     ```
     """
@@ -138,22 +140,19 @@ class Scraper(object):
         filters=None,
         debug=False,
     ):
-        self.cat = str(category)
+        self.category = category
         self.wait = wait
         self.progress_every = progress_every
         self.timeout = timeout
-        datetoday = datetime.date.today()
-        if date_from is None:
-            self.f = str(datetoday.replace(day=1))
-        else:
-            self.f = date_from
-        if date_until is None:
-            self.u = str(datetoday)
-        else:
-            self.u = date_until
-        self.url = (
-            BASE + "from=" + self.f + "&until=" + self.u + "&metadataPrefix=arXiv&set=%s" % self.cat
+
+        self.url = "{}verb=ListRecords&metadataPrefix=arXiv&set={}".format(
+            ARXIVOAI2_URLBASE, self.category
         )
+        if date_from is not None:
+            self.url += "&from={}".format(date_from)
+        if date_until is not None:
+            self.url += "&until={}".format(date_until)
+
         if filters is None:
             filters = dict()
         self.filters = filters
@@ -188,9 +187,9 @@ class Scraper(object):
                     raise
             xml = response.read()
             root = ElementTree.fromstring(xml)
-            records = root.findall(OAI + "ListRecords/" + OAI + "record")
+            records = root.findall(OAI2 + "ListRecords/" + OAI2 + "record")
             for record in records:
-                meta = record.find(OAI + "metadata").find(ARXIV + "arXiv")
+                meta = record.find(OAI2 + "metadata").find(ARXIV + "arXiv")
                 record = Record(meta).output()
                 if self.append_all:
                     results.append(record)
@@ -204,15 +203,15 @@ class Scraper(object):
                     if save_record:
                         results.append(record)
 
-            list_records = root.find(OAI + "ListRecords")
+            list_records = root.find(OAI2 + "ListRecords")
             if list_records is None:
                 logger.debug("ListRecords empty")
                 break
-            token = list_records.find(OAI + "resumptionToken")
+            token = list_records.find(OAI2 + "resumptionToken")
             if token is None or token.text is None:
                 logger.debug("resumptionToken text empty")
                 break
-            url = BASE + "resumptionToken=%s" % token.text
+            url = "{}verb=ListRecords&resumptionToken={}".format(ARXIVOAI2_URLBASE, token.text)
 
             loop_duration = time.time() - loop_start
             lastlog += loop_duration
