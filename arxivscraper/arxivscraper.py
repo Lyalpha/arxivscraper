@@ -113,7 +113,7 @@ class Scraper(object):
     ```
     """
 
-    def __init__(self, category, date_from=None, date_until=None, t=30, timeout=300, filters={}):
+    def __init__(self, category, date_from=None, date_until=None, t=30, timeout=300, filters=None):
         self.cat = str(category)
         self.t = t
         self.timeout = timeout
@@ -129,6 +129,8 @@ class Scraper(object):
         self.url = (
             BASE + "from=" + self.f + "&until=" + self.u + "&metadataPrefix=arXiv&set=%s" % self.cat
         )
+        if filters is None:
+            filters = dict()
         self.filters = filters
         if not self.filters:
             self.append_all = True
