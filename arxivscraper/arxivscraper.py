@@ -7,6 +7,7 @@ Updated by: Joe Lyman (https://github.com/Lyalpha/)
 """
 from xml.etree import ElementTree
 import datetime
+import logging
 import time
 
 from urllib.request import urlopen
@@ -15,6 +16,10 @@ from urllib.error import HTTPError
 OAI = "{http://www.openarchives.org/OAI/2.0/}"
 ARXIV = "{http://arxiv.org/OAI/arXiv/}"
 BASE = "http://export.arxiv.org/oai2?verb=ListRecords&"
+
+LOGGING_FORMAT = "%(asctime)s  %(levelname)-10s %(processName)s - %(message)s"
+logging.basicConfig(level=logging.INFO, format=LOGGING_FORMAT)
+logger = logging.getLogger(__name__)
 
 
 class Record(object):
@@ -151,20 +156,23 @@ class Scraper(object):
         tx = time.time()
         elapsed = 0.0
         url = self.url
-        print(url)
+        logger.debug("url being queried: {}".format(url))
         ds = []
         k = 1
         while True:
 
-            print("fetching up to ", 1000 * k, "records...")
+            logger.debug("fetching next {} records".format(1000 * k))
             try:
                 response = urlopen(url)
             except HTTPError as e:
                 if e.code == 503:
-                    print("Got 503. Retrying after {0:d} seconds.".format(self.t))
+                    logger.warning(
+                        "response returned 503, retrying after {} seconds.".format(self.t)
+                    )
                     time.sleep(self.t)
                     continue
                 else:
+                    logger.exception("unexpected error from api call")
                     raise
             k += 1
             xml = response.read()
@@ -202,8 +210,8 @@ class Scraper(object):
                 tx = time.time()
 
         t1 = time.time()
-        print("fetching is completed in {0:.1f} seconds.".format(t1 - t0))
-        print("Total number of records {:d}".format(len(ds)))
+        logger.info("fetching is completed in {:.1f} seconds.".format(t1 - t0))
+        logger.info("total number of records {:d}".format(len(ds)))
         return ds
 
 
