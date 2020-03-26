@@ -117,13 +117,13 @@ class Scraper(object):
         self.cat = str(category)
         self.t = t
         self.timeout = timeout
-        DateToday = datetime.date.today()
+        datetoday = datetime.date.today()
         if date_from is None:
-            self.f = str(DateToday.replace(day=1))
+            self.f = str(datetoday.replace(day=1))
         else:
             self.f = date_from
         if date_until is None:
-            self.u = str(DateToday)
+            self.u = str(datetoday)
         else:
             self.u = date_until
         self.url = (
