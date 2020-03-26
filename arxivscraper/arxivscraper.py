@@ -107,6 +107,9 @@ class Scraper(object):
         they were created outside of the given date range. Default: today.
     wait: int
         Waiting time in seconds between subsequent calls to API, triggered by Error 503. Default: 30
+    progress_every: int
+        Send an INFO level log entry about progress after this many seconds during querying.
+        Default: 90
     timeout: int or None
         Timeout in seconds after which the scraping stops. Default: None
     filter: dictionary
@@ -125,10 +128,18 @@ class Scraper(object):
     """
 
     def __init__(
-        self, category, date_from=None, date_until=None, wait=30, timeout=None, filters=None
+        self,
+        category,
+        date_from=None,
+        date_until=None,
+        wait=30,
+        progress_every=90,
+        timeout=None,
+        filters=None,
     ):
         self.cat = str(category)
         self.wait = wait
+        self.progress_every = progress_every
         self.timeout = timeout
         datetoday = datetime.date.today()
         if date_from is None:
@@ -152,16 +163,15 @@ class Scraper(object):
             self.keys = filters.keys()
 
     def scrape(self):
-        t0 = time.time()
-        tx = time.time()
-        elapsed = 0.0
+        start = time.time()
+        lastlog = 0
+        elapsed = 0
         url = self.url
         logger.debug("url being queried: {}".format(url))
         ds = []
-        k = 1
         while True:
-
-            logger.debug("fetching next {} records".format(1000 * k))
+            loop_start = time.time()
+            logger.debug("fetching next 1000 records")
             try:
                 response = urlopen(url)
             except HTTPError as e:
@@ -173,7 +183,6 @@ class Scraper(object):
                 else:
                     logger.exception("unexpected error from api call")
                     raise
-            k += 1
             xml = response.read()
             root = ElementTree.fromstring(xml)
             records = root.findall(OAI + "ListRecords/" + OAI + "record")
@@ -201,16 +210,20 @@ class Scraper(object):
             else:
                 url = BASE + "resumptionToken=%s" % token.text
 
-            ty = time.time()
-            elapsed += ty - tx
+            loop_duration = time.time() - loop_start
+            lastlog += loop_duration
+            if lastlog > self.progress_every:
+                logger.info("records fetched so far: {}".format(len(ds)))
+                logger.info("created date of latest entry: {}".format(ds[-1]["created"]))
+                lastlog = 0
+
+            elapsed += loop_duration
             if self.timeout is not None and elapsed >= self.timeout:
                 break
-            else:
-                tx = time.time()
 
-        t1 = time.time()
-        logger.info("fetching is completed in {:.1f} seconds.".format(t1 - t0))
-        logger.info("total number of records {:d}".format(len(ds)))
+        total_duration = time.time() - start
+        logger.info("fetching completed in {:.1f} seconds.".format(total_duration))
+        logger.info("total number of records fetched: {:d}".format(len(ds)))
         return ds
 
 
