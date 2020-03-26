@@ -128,7 +128,7 @@ class Scraper(object):
         self, category, date_from=None, date_until=None, wait=30, timeout=None, filters=None
     ):
         self.cat = str(category)
-        self.t = wait
+        self.wait = wait
         self.timeout = timeout
         datetoday = datetime.date.today()
         if date_from is None:
@@ -166,10 +166,9 @@ class Scraper(object):
                 response = urlopen(url)
             except HTTPError as e:
                 if e.code == 503:
-                    logger.warning(
-                        "response returned 503, retrying after {} seconds.".format(self.t)
-                    )
-                    time.sleep(self.t)
+                    wait = int(e.hdrs.get("retry-after", self.wait))
+                    logger.warning("response returned 503, retrying after {} seconds.".format(wait))
+                    time.sleep(self.wait)
                     continue
                 else:
                     logger.exception("unexpected error from api call")
