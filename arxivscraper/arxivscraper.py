@@ -181,7 +181,7 @@ class Scraper(object):
                 if e.code == 503:
                     wait = int(e.hdrs.get("retry-after", self.wait))
                     logger.warning("response returned 503, retrying after {} seconds.".format(wait))
-                    time.sleep(self.wait)
+                    time.sleep(wait)
                     continue
                 else:
                     logger.exception("unexpected error from api call")
