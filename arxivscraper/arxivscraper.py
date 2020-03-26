@@ -35,7 +35,7 @@ class Record(object):
         self.created = self._get_text(ARXIV, "created")
         self.updated = self._get_text(ARXIV, "updated")
         self.doi = self._get_text(ARXIV, "doi")
-        self.authors = self._get_authors()
+        self.authors, self.authors_fullnames = self._get_authors()
         self.affiliation = self._get_affiliation()
 
     def _get_text(self, namespace, tag):
@@ -48,9 +48,14 @@ class Record(object):
     def _get_authors(self):
         authors_xml = self.xml.findall(ARXIV + "authors/" + ARXIV + "author")
         last_names = [author.find(ARXIV + "keyname").text.lower() for author in authors_xml]
-        first_names = [author.find(ARXIV + "forenames").text.lower() for author in authors_xml]
-        full_names = [a + " " + b for a, b in zip(first_names, last_names)]
-        return full_names
+        first_names = [
+            author.find(ARXIV + "forenames").text.lower()
+            if author.find(ARXIV + "forenames") is not None
+            else ""
+            for author in authors_xml
+        ]
+        full_names = [(a + " " + b).strip() for a, b in zip(first_names, last_names)]
+        return last_names, full_names
 
     def _get_affiliation(self):
         authors = self.xml.findall(ARXIV + "authors/" + ARXIV + "author")
@@ -70,6 +75,7 @@ class Record(object):
             "created": self.created,
             "updated": self.updated,
             "authors": self.authors,
+            "authors_fullnames": self.authors_fullnames,
             "affiliation": self.affiliation,
             "url": self.url,
         }
