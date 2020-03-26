@@ -171,7 +171,7 @@ class Scraper(object):
         elapsed = 0
         url = self.url
         logger.debug("url being queried: {}".format(url))
-        records = []
+        results = []
         while True:
             loop_start = time.time()
             logger.debug("fetching next 1000 records")
@@ -193,7 +193,7 @@ class Scraper(object):
                 meta = record.find(OAI + "metadata").find(ARXIV + "arXiv")
                 record = Record(meta).output()
                 if self.append_all:
-                    records.append(record)
+                    results.append(record)
                 else:
                     save_record = False
                     for key in self.keys:
@@ -202,23 +202,23 @@ class Scraper(object):
                                 save_record = True
 
                     if save_record:
-                        records.append(record)
+                        results.append(record)
 
             list_records = root.find(OAI + "ListRecords")
             if list_records is None:
-                logger.info("ListRecords empty")
+                logger.debug("ListRecords empty")
                 break
             token = list_records.find(OAI + "resumptionToken")
-            if token.text is None:
-                logger.info("resumptionToken text empty")
+            if token is None or token.text is None:
+                logger.debug("resumptionToken text empty")
                 break
             url = BASE + "resumptionToken=%s" % token.text
 
             loop_duration = time.time() - loop_start
             lastlog += loop_duration
             if lastlog > self.progress_every:
-                logger.info("records fetched so far: {}".format(len(records)))
-                logger.info("created date of latest entry: {}".format(records[-1]["created"]))
+                logger.info("records fetched so far: {}".format(len(results)))
+                logger.info("created date of latest entry: {}".format(results[-1]["created"]))
                 lastlog = 0
 
             elapsed += loop_duration
@@ -227,8 +227,8 @@ class Scraper(object):
 
         total_duration = time.time() - start
         logger.info("fetching completed in {:.1f} seconds.".format(total_duration))
-        logger.info("total number of records fetched: {:d}".format(len(records)))
-        return records
+        logger.info("total number of records fetched: {:d}".format(len(results)))
+        return results
 
 
 cats = [
