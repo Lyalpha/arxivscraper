@@ -36,35 +36,20 @@ from 27 May 2017 until 7 June 2017 (for other categories, see below):
 ```python
 import arxivscraper
 scraper = arxivscraper.Scraper(category='physics:cond-mat', date_from='2017-05-27',date_until='2017-06-07')
-```
-Once we built an instance of the scraper, we can start the scraping:
-
-```python
 output = scraper.scrape()
 ```
-While scraper is running, it prints its status:
 
-```
-fetching up to  1000 records...
-fetching up to  2000 records...
-Got 503. Retrying after 30 seconds.
-fetching up to  3000 records...
-fetching is complete.
-```
-
-Finally you can save the output in your favorite format or readily convert it into a pandas dataframe:
-```python
-import pandas as pd
-cols = ('id', 'title', 'categories', 'abstract', 'doi', 'created', 'updated', 'authors')
-df = pd.DataFrame(output,columns=cols)
-```
+If `date_from` and/or `date_until` are omitted (or `None`), then they are effectively set as the earliest
+and latest dates available for arxiv records in the category chosen (see 
+[OAI2 documentation](http://www.openarchives.org/OAI/2.0/openarchivesprotocol.htm#SelectiveHarvestingandDatestamps))
 
 ### With filtering
 To have more control over the output, you could supply a dictionary to filter out the results. As an example, let's collect all preprints related to machine learning. This subcategory (`stat.ML`) is part of the statistics (`stat`) category. In addition, we want those preprints that word `learning` appears in their abstract.
 
 ```python
 import arxivscraper.arxivscraper as ax
-scraper = ax.Scraper(category='stat',date_from='2017-08-01',date_until='2017-08-10',wait=10, filters={'categories':['stat.ml'],'abstract':['learning']})
+scraper = ax.Scraper(category='stat', date_from='2017-08-01', date_until='2017-08-10', 
+    filters={'categories':['stat.ml'],'abstract':['learning']})
 output = scraper.scrape()
 ```
 
@@ -119,9 +104,9 @@ or
 ```
 
 ## Author
-* **Mahdi Sadjadi**, 2017.
+* **Mahdi Sadjadi**, 2017. Updated by **Joe Lyman**, 2020
 
-* Website: [mahdisadjadi.com](http://mahdisadjadi.com)
+* Website: [mahdisadjadi.com](http://mahdisadjadi.com), [github.com/Lyalpha](https://github.com/Lyalpha)
 
 * Twitter: [@mahdisadjadi](http://twitter.com/MahdiSadjadi)
 
