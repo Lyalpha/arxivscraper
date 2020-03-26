@@ -1,4 +1,4 @@
-"""\
+"""
 Provides a python package to get data of academic papers
 posted at arXiv.org in a specific date range and category.
 
