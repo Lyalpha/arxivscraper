@@ -171,7 +171,7 @@ class Scraper(object):
         elapsed = 0
         url = self.url
         logger.debug("url being queried: {}".format(url))
-        ds = []
+        records = []
         while True:
             loop_start = time.time()
             logger.debug("fetching next 1000 records")
@@ -193,7 +193,7 @@ class Scraper(object):
                 meta = record.find(OAI + "metadata").find(ARXIV + "arXiv")
                 record = Record(meta).output()
                 if self.append_all:
-                    ds.append(record)
+                    records.append(record)
                 else:
                     save_record = False
                     for key in self.keys:
@@ -202,7 +202,7 @@ class Scraper(object):
                                 save_record = True
 
                     if save_record:
-                        ds.append(record)
+                        records.append(record)
 
             try:
                 token = root.find(OAI + "ListRecords").find(OAI + "resumptionToken")
@@ -216,8 +216,8 @@ class Scraper(object):
             loop_duration = time.time() - loop_start
             lastlog += loop_duration
             if lastlog > self.progress_every:
-                logger.info("records fetched so far: {}".format(len(ds)))
-                logger.info("created date of latest entry: {}".format(ds[-1]["created"]))
+                logger.info("records fetched so far: {}".format(len(records)))
+                logger.info("created date of latest entry: {}".format(records[-1]["created"]))
                 lastlog = 0
 
             elapsed += loop_duration
@@ -226,8 +226,8 @@ class Scraper(object):
 
         total_duration = time.time() - start
         logger.info("fetching completed in {:.1f} seconds.".format(total_duration))
-        logger.info("total number of records fetched: {:d}".format(len(ds)))
-        return ds
+        logger.info("total number of records fetched: {:d}".format(len(records)))
+        return records
 
 
 cats = [
