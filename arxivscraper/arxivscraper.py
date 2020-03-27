@@ -21,7 +21,7 @@ logging.basicConfig(level=logging.INFO, format=LOGGING_FORMAT)
 logger = logging.getLogger(__name__)
 
 
-class Record(object):
+class Record:
     """
     A class to hold a single record from ArXiv
     Each records contains the following properties:
@@ -86,7 +86,7 @@ class Record(object):
         return d
 
 
-class Scraper(object):
+class Scraper:
     """
     A class to hold info about attributes of scraping,
     such as date range, categories, and number of returned
