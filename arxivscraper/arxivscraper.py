@@ -5,12 +5,11 @@ categories and specific date range.
 Author: Mahdi Sadjadi (sadjadi.seyedmahdi[AT]gmail[DOT]com).
 Updated by: Joe Lyman (https://github.com/Lyalpha/)
 """
-from xml.etree import ElementTree
 import logging
 import time
-
-from urllib.request import urlopen
 from urllib.error import HTTPError
+from urllib.request import urlopen
+from xml.etree import ElementTree
 
 OAI2 = "{http://www.openarchives.org/OAI/2.0/}"
 ARXIV = "{http://arxiv.org/OAI/arXiv/}"
