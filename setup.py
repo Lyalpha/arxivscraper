@@ -26,12 +26,11 @@ except ImportError:
 
 setup(
     name="arxivscraper",
-    version="0.0.3",
+    version="0.1.3",
     description="Get arXiv.org metadate within a date range and category",
-    author="Mahdi Sadjadi",
+    author="Mahdi Sadjadi, Joe Lyman",
     author_email="sadjadi.seyedmahdi@gmail.com",
-    url="https://github.com/Mahdisadjadi/arxivscraper",
-    download_url="https://github.com/Mahdisadjadi/arxivscraper/archive/0.0.2.tar.gz",
+    url="https://github.com/Lyalpha/arxivscraper",
     py_modules=[""],
     packages=find_packages(),
     keywords=["arxiv", "scraper", "api", "citation"],
