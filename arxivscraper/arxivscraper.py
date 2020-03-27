@@ -157,9 +157,6 @@ class Scraper:
         final date in format 'YYYY-MM-DD'. Updated eprints are included even if
         they were created outside of the given date range. Default: None (= latest
         date available in arxiv)
-    wait: int
-        Fall-back waiting time in seconds between subsequent calls to API, triggered
-        by Error 503. Default: 30
     progress_every: int
         Send an INFO level log entry about progress after this many seconds during querying.
         Default: 90
@@ -185,7 +182,6 @@ class Scraper:
         category,
         date_from=None,
         date_until=None,
-        wait=30,
         progress_every=90,
         timeout=None,
         filters=None,
@@ -193,7 +189,6 @@ class Scraper:
     ):
         self.category = category
         self.check_category()
-        self.wait = wait
         self.progress_every = progress_every
         self.timeout = timeout
 
@@ -244,7 +239,7 @@ class Scraper:
                 response = urlopen(url)
             except HTTPError as e:
                 if e.code == 503:
-                    wait = int(e.hdrs.get("retry-after", self.wait))
+                    wait = int(e.hdrs.get("retry-after", 5))
                     logger.warning("response returned 503, retrying after {} seconds.".format(wait))
                     time.sleep(wait)
                     continue
