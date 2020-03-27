@@ -21,6 +21,57 @@ logging.basicConfig(level=logging.INFO, format=LOGGING_FORMAT)
 logger = logging.getLogger(__name__)
 
 
+class Category:
+    """
+    Holds details of valid categories for arXiv scraping
+
+    Paramters
+    ---------
+    retries : int
+        Number of times to try api call, in case of 503 response.
+    """
+
+    def __init__(self, retries=5):
+        self.retries = retries
+        self.url = "{}verb=ListSets".format(ARXIVOAI2_URLBASE)
+        self.categories = self._get_categories()
+
+    def _get_categories(self):
+        logger.debug("fetching arxiv OAI2 categories")
+        for i in range(self.retries):
+            try:
+                response = urlopen(self.url)
+            except HTTPError as e:
+                if e.code == 503:
+                    wait = int(e.hdrs.get("retry-after", 5))
+                    logger.warning("response returned 503, retrying after {} seconds.".format(wait))
+                    time.sleep(wait)
+                else:
+                    logger.exception("unexpected error from api call")
+                    raise
+            else:
+                break
+        else:
+            logger.error("could not retrieve arxiv categories")
+            return
+
+        xml = response.read()
+        root = ElementTree.fromstring(xml)
+        sets = root.findall(OAI2 + "ListSets/" + OAI2 + "set")
+        categories = dict()
+        for s in sets:
+            spec = s.find(OAI2 + "setSpec").text
+            name = s.find(OAI2 + "setName").text
+            categories[spec] = name
+        return categories
+
+    def categories_info(self):
+        s = ""
+        for key, value in self.categories.items():
+            s += "{:17}{:}\n".format(key, value)
+        return s
+
+
 class Record:
     """
     A class to hold a single record from ArXiv
@@ -141,6 +192,7 @@ class Scraper:
         debug=False,
     ):
         self.category = category
+        self.check_category()
         self.wait = wait
         self.progress_every = progress_every
         self.timeout = timeout
@@ -164,7 +216,21 @@ class Scraper:
         if debug:
             logger.setLevel(logging.DEBUG)
 
+    def check_category(self):
+        c = Category()
+        valid_categories = c.categories
+        if valid_categories is None:
+            logger.warning("couldn't check valid categories")
+            return
+        try:
+            category = valid_categories[self.category]
+        except KeyError:
+            logger.error("{} is not a valid category.".format(self.category))
+            logger.info("valid categories:\n{}".format(c.categories_info()))
+            raise
+
     def scrape(self):
+        logger.debug("scraping {} from arxiv".format(self.category))
         start = time.time()
         lastlog = 0
         elapsed = 0
